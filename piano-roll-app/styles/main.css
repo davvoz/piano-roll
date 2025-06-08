@@ -1,0 +1,1126 @@
+/* ============ APP TIMER STYLES ============ */
+.app-timer-container {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 12px 20px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    min-height: 60px;
+    -webkit-backdrop-filter: blur(10px);
+    backdrop-filter: blur(10px);
+}
+
+.timer-transport {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+}
+
+.timer-btn {
+    width: 40px;
+    height: 40px;
+    border: none;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.2);
+    color: white;
+    font-size: 16px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    -webkit-backdrop-filter: blur(5px);
+    backdrop-filter: blur(5px);
+}
+
+.timer-btn:hover {
+    background: rgba(255, 255, 255, 0.3);
+    transform: scale(1.1);
+}
+
+.timer-btn.active {
+    background: rgba(255, 255, 255, 0.4);
+    box-shadow: 0 0 15px rgba(255, 255, 255, 0.5);
+}
+
+.timer-display {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    flex: 1;
+    justify-content: center;
+}
+
+.timer-position {
+    font-family: 'Courier New', monospace;
+    font-size: 24px;
+    font-weight: bold;
+    background: rgba(0, 0, 0, 0.3);
+    padding: 8px 16px;
+    border-radius: 8px;
+    letter-spacing: 1px;
+    min-width: 120px;
+    text-align: center;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.timer-tempo {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: rgba(0, 0, 0, 0.3);
+    padding: 8px 12px;
+    border-radius: 8px;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.tempo-input {
+    background: transparent;
+    border: none;
+    color: white;
+    font-size: 18px;
+    font-weight: bold;
+    width: 60px;
+    text-align: center;
+    outline: none;
+}
+
+.tempo-input::-webkit-outer-spin-button,
+.tempo-input::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    appearance: none;
+    margin: 0;
+}
+
+.tempo-input[type=number] {
+    -moz-appearance: textfield;
+    appearance: textfield;
+}
+
+.tempo-label {
+    font-size: 12px;
+    opacity: 0.8;
+    font-weight: 500;
+}
+
+.timer-controls {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+.timer-control {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    cursor: pointer;
+    font-size: 14px;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    user-select: none;
+}
+
+.timer-control input[type="checkbox"] {
+    appearance: none;
+    width: 18px;
+    height: 18px;
+    border: 2px solid rgba(255, 255, 255, 0.5);
+    border-radius: 3px;
+    background: transparent;
+    cursor: pointer;
+    position: relative;
+    transition: all 0.3s ease;
+}
+
+.timer-control input[type="checkbox"]:checked {
+    background: rgba(255, 255, 255, 0.9);
+    border-color: rgba(255, 255, 255, 0.9);
+}
+
+.timer-control input[type="checkbox"]:checked::after {
+    content: '✓';
+    position: absolute;
+    top: -2px;
+    left: 2px;
+    color: #667eea;
+    font-size: 14px;
+    font-weight: bold;
+}
+
+.time-signature {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    background: rgba(0, 0, 0, 0.3);
+    padding: 6px 10px;
+    border-radius: 6px;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    font-size: 14px;
+}
+
+.sig-numerator,
+.sig-denominator {
+    background: transparent;
+    border: none;
+    color: white;
+    font-size: 14px;
+    font-weight: bold;
+    width: 30px;
+    text-align: center;
+    outline: none;
+}
+
+.sig-numerator::-webkit-outer-spin-button,
+.sig-numerator::-webkit-inner-spin-button,
+.sig-denominator::-webkit-outer-spin-button,
+.sig-denominator::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    appearance: none;
+    margin: 0;
+}
+
+.sig-numerator[type=number],
+.sig-denominator[type=number] {
+    -moz-appearance: textfield;
+    appearance: textfield;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .app-timer-container {
+        flex-direction: column;
+        gap: 10px;
+        padding: 10px;
+        min-height: 60px;
+    }
+    
+    .timer-display {
+        gap: 15px;
+    }
+    
+    .timer-position {
+        font-size: 20px;
+        min-width: 100px;
+    }
+    
+    .timer-controls {
+        gap: 12px;
+    }
+}
+
+/* Adjust body padding to account for fixed timer */
+body {
+    padding-top: 80px;
+    margin: 0;
+    font-family: Arial, sans-serif;
+    background-color: #f0f0f0;
+}
+
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px;
+    background-color: #3f51b5;
+    color: white;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.header h1 {
+    margin: 0;
+    font-size: 24px;
+}
+
+.controls {
+    display: flex;
+    gap: 10px;
+}
+
+.button {
+    padding: 10px 15px;
+    background-color: #4caf50;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 14px;
+    transition: background-color 0.3s;
+}
+
+.button:hover {
+    background-color: #45a049;
+}
+
+.piano-roll-container {
+    padding: 20px;
+    background-color: white;
+    margin: 20px;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    position: relative;
+    max-height: 80vh;
+    /* Limita l'altezza per consentire lo scroll */
+    overflow-y: auto;
+    /* Abilita lo scroll verticale */
+}
+
+.piano-roll-grid {
+    display: grid;
+    gap: 1px;
+    /* Gap ridotto per più righe */
+    background-color: #e0e0e0;
+    padding: 10px;
+    border-radius: 4px;
+    min-height: 400px;
+}
+
+.piano-roll-cell {
+    cursor: pointer;
+    position: relative;
+    min-height: 20px;
+    /* Altezza ridotta per gestire più righe */
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    padding: 3px;
+    /* Padding ridotto */
+    transition: all 0.2s ease;
+    /* Base styling will be applied by the hierarchical system below */
+}
+
+.piano-roll-cell:hover:not(.current-step) {
+    background-color: #e3f2fd;
+    transform: scale(1.02);
+}
+
+.piano-roll-cell.active:hover {
+    background-color: #66bb6a;
+}
+
+.note-label {
+    font-size: 10px;
+    /* Font ridotto per più righe */
+    font-weight: bold;
+    color: #666;
+}
+
+.piano-roll-cell.active .note-label {
+    color: white;
+}
+
+/* Stili per le etichette delle note (prima colonna, non cliccabile) */
+.piano-roll-label {
+    background-color: #f5f5f5;
+    border: 1px solid #ddd;
+    position: relative;
+    min-height: 20px;
+    /* Altezza ridotta per gestire più righe */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 3px;
+    /* Padding ridotto */
+    font-weight: bold;
+    font-size: 10px;
+    /* Font più piccolo */
+    border-right: 3px solid #ccc;
+    cursor: default;
+    /* Non cliccabile */
+    transition: all 0.2s ease;
+}
+
+/* Colori dei tasti bianchi del pianoforte */
+.piano-roll-label[data-note="C"],
+.piano-roll-label[data-note="D"],
+.piano-roll-label[data-note="E"],
+.piano-roll-label[data-note="F"],
+.piano-roll-label[data-note="G"],
+.piano-roll-label[data-note="A"],
+.piano-roll-label[data-note="B"] {
+    background-color: #ffffff;
+    border: 2px solid #ddd;
+    color: #333;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* Colori dei tasti neri del pianoforte */
+.piano-roll-label[data-note="C#"],
+.piano-roll-label[data-note="D#"],
+.piano-roll-label[data-note="F#"],
+.piano-roll-label[data-note="G#"],
+.piano-roll-label[data-note="A#"] {
+    background-color: #333333;
+    border: 2px solid #222;
+    color: #ffffff;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+/* Hover per tasti bianchi */
+.piano-roll-label[data-note="C"]:hover,
+.piano-roll-label[data-note="D"]:hover,
+.piano-roll-label[data-note="E"]:hover,
+.piano-roll-label[data-note="F"]:hover,
+.piano-roll-label[data-note="G"]:hover,
+.piano-roll-label[data-note="A"]:hover,
+.piano-roll-label[data-note="B"]:hover {
+    background-color: #f0f0f0;
+    transform: scale(1.02);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+/* Hover per tasti neri */
+.piano-roll-label[data-note="C#"]:hover,
+.piano-roll-label[data-note="D#"]:hover,
+.piano-roll-label[data-note="F#"]:hover,
+.piano-roll-label[data-note="G#"]:hover,
+.piano-roll-label[data-note="A#"]:hover {
+    background-color: #555555;
+    transform: scale(1.02);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.4);
+}
+
+.tempo-control {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-left: 20px;
+}
+
+.tempo-control label {
+    font-size: 14px;
+    color: white;
+}
+
+.tempo-control input[type="range"] {
+    width: 100px;
+}
+
+.tempo-control span {
+    font-size: 14px;
+    color: white;
+    min-width: 60px;
+}
+
+/* Controlli del loop */
+.loop-control {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    margin-left: 20px;
+}
+
+.loop-markers {
+    display: flex;
+    gap: 10px;
+    font-size: 12px;
+}
+
+.loop-markers label {
+    color: white;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.loop-markers input[type="number"] {
+    width: 50px;
+    padding: 2px 5px;
+    border: 1px solid #ccc;
+    border-radius: 3px;
+    font-size: 12px;
+}
+
+#loop-btn.active {
+    background-color: #ff9800;
+}
+
+#loop-btn.active:hover {
+    background-color: #f57c00;
+}
+
+/* ==============================================
+   PIANO ROLL CELL STYLING - HIERARCHICAL SYSTEM
+   ============================================== */
+
+/* Base cell styling - lowest priority */
+.piano-roll-cell {
+    background-color: #fafafa;
+    border: 1px solid #ddd;
+}
+
+/* Beat and bar indicators - medium priority */
+.piano-roll-cell.beat-start {
+    border-left: 2px solid #4caf50;
+    background-color: rgba(76, 175, 80, 0.05);
+}
+
+.piano-roll-cell.bar-start {
+    border-left: 3px solid #2196f3;
+    background-color: rgba(33, 150, 243, 0.1);
+}
+
+/* When both beat-start and bar-start are present, bar-start wins */
+.piano-roll-cell.bar-start.beat-start {
+    border-left: 3px solid #666;
+    background-color: rgba(0, 0, 0, 0.05);
+}
+
+/* Active note styling - higher priority */
+.piano-roll-cell.active {
+    background-color: #4caf50;
+    color: white;
+    border-color: #388e3c;
+}
+
+/* Active note with beat/bar markers - preserve indicators while showing active state */
+.piano-roll-cell.active.beat-start {
+    border-left: 2px solid #2e7d32;
+    /* Darker green for beat on active */
+}
+
+.piano-roll-cell.active.bar-start {
+    border-left: 3px solid #1b5e20;
+    /* Darkest green for bar on active */
+}
+
+.piano-roll-cell.active.bar-start.beat-start {
+    border-left: 3px solid #1b5e20;
+}
+
+/* Current step highlighting - high priority */
+.piano-roll-cell.current-step {
+    background-color: rgba(255, 68, 68, 0.25);
+    border: 2px solid #ff4444;
+    box-shadow: 0 0 8px rgba(255, 68, 68, 0.4), inset 0 0 8px rgba(255, 68, 68, 0.2);
+    animation: currentStepPulse 1s ease-in-out infinite;
+    transform: scale(1.02);
+}
+
+/* Current step with active note */
+.piano-roll-cell.current-step.active {
+    background-color: #ff6b6b;
+    border: 2px solid #ff4444;
+    box-shadow: 0 0 12px rgba(255, 68, 68, 0.6), inset 0 0 8px rgba(255, 255, 255, 0.3);
+}
+
+/* Current step with beat/bar markers */
+.piano-roll-cell.current-step.beat-start {
+    border-left: 3px solid #ff4444;
+}
+
+.piano-roll-cell.current-step.bar-start {
+    border-left: 4px solid #ff4444;
+}
+
+.piano-roll-cell.current-step.bar-start.beat-start {
+    border-left: 4px solid #ff4444;
+}
+
+/* Loop markers - highest priority, override everything else */
+.piano-roll-cell.loop-start {
+    border-left: 4px solid #4caf50 !important;
+    box-shadow: inset 3px 0 0 rgba(76, 175, 80, 0.3);
+}
+
+.piano-roll-cell.loop-end {
+    border-right: 4px solid #f44336 !important;
+    box-shadow: inset -3px 0 0 rgba(244, 67, 54, 0.3);
+}
+
+/* Loop markers with active notes */
+.piano-roll-cell.loop-start.active,
+.piano-roll-cell.loop-end.active {
+    background-color: #4caf50;
+    color: white;
+}
+
+/* Loop markers with current step */
+.piano-roll-cell.loop-start.current-step {
+    border-left: 4px solid #4caf50 !important;
+    background-color: rgba(255, 68, 68, 0.2);
+    box-shadow: inset 3px 0 0 rgba(76, 175, 80, 0.3);
+}
+
+.piano-roll-cell.loop-end.current-step {
+    border-right: 4px solid #f44336 !important;
+    background-color: rgba(255, 68, 68, 0.2);
+    box-shadow: inset -3px 0 0 rgba(244, 67, 54, 0.3);
+}
+
+/* Position Indicator (Playhead) */
+.position-indicator {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 3px;
+    height: 100%;
+    background: linear-gradient(to bottom, #ff4444, #ff6666, #ff4444);
+    border-radius: 1.5px;
+    z-index: 100;
+    display: none;
+    box-shadow: 0 0 8px rgba(255, 68, 68, 0.6);
+    transition: left 0.05s ease-out;
+}
+
+.position-indicator::before {
+    content: '';
+    position: absolute;
+    top: -8px;
+    left: -6px;
+    width: 0;
+    height: 0;
+    border-left: 7.5px solid transparent;
+    border-right: 7.5px solid transparent;
+    border-bottom: 8px solid #ff4444;
+    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
+}
+
+.position-indicator.playing {
+    animation: pulse 0.5s ease-in-out infinite;
+}
+
+@keyframes pulse {
+    from {
+        box-shadow: 0 0 8px rgba(255, 68, 68, 0.6);
+        opacity: 1;
+    }
+
+    to {
+        box-shadow: 0 0 12px rgba(255, 68, 68, 0.8), 0 0 20px rgba(255, 68, 68, 0.4);
+        opacity: 0.9;
+    }
+}
+
+/* Current step highlighting */
+.piano-roll-cell.current-step {
+    background-color: rgba(255, 68, 68, 0.15) !important;
+    border: 2px solid rgba(255, 68, 68, 0.5);
+    box-shadow: 0 0 8px rgba(255, 68, 68, 0.3);
+    animation: stepPulse 0.2s ease-out;
+}
+
+.piano-roll-cell.current-step.active {
+    background-color: rgba(255, 68, 68, 0.3) !important;
+    border-color: #ff4444;
+}
+
+@keyframes stepPulse {
+    0% {
+        transform: scale(1);
+    }
+
+    50% {
+        transform: scale(1.05);
+    }
+
+    100% {
+        transform: scale(1);
+    }
+}
+
+/* Stili responsive per controlli */
+@media (max-width: 768px) {
+    .controls {
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    .tempo-control,
+    .loop-control {
+        margin-left: 0;
+    }
+
+    .loop-markers {
+        flex-direction: column;
+        gap: 5px;
+    }
+}
+
+/* Beat numbers header */
+.beat-numbers {
+    display: grid;
+    grid-template-columns: 80px repeat(32, 1fr);
+    gap: 1px;
+    background-color: #e0e0e0;
+    padding: 10px 10px 0 10px;
+    border-radius: 4px 4px 0 0;
+    font-size: 10px;
+    font-weight: bold;
+    text-align: center;
+    color: #666;
+}
+
+.beat-number {
+    padding: 5px 2px;
+    background-color: #f5f5f5;
+    border: 1px solid #ddd;
+    min-height: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.beat-number.beat-start {
+    background-color: #e8f5e8;
+    border-color: #4caf50;
+    color: #2e7d32;
+}
+
+.beat-number.bar-start {
+    background-color: #e3f2fd;
+    border-color: #2196f3;
+    color: #1565c0;
+    font-weight: bold;
+}
+
+/* Piano Roll UI Enhancements */
+.settings-panel-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 1998;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.3s ease;
+}
+
+.settings-panel-overlay.active {
+    opacity: 1;
+    visibility: visible;
+}
+
+/* Modern scrollbar for settings panel */
+#settings-panel::-webkit-scrollbar {
+    width: 8px;
+}
+
+#settings-panel::-webkit-scrollbar-track {
+    background: #2d2d2d;
+}
+
+#settings-panel::-webkit-scrollbar-thumb {
+    background: #4a9eff;
+    border-radius: 4px;
+}
+
+#settings-panel::-webkit-scrollbar-thumb:hover {
+    background: #357abd;
+}
+
+/* Animation for settings button */
+@keyframes pulse {
+    0% {
+        transform: scale(1);
+    }
+
+    50% {
+        transform: scale(1.05);
+    }
+
+    100% {
+        transform: scale(1);
+    }
+}
+
+#settings-toggle:hover {
+    animation: pulse 1s infinite;
+}
+
+/* Transport controls animations */
+.transport-btn.playing {
+    animation: pulse 2s infinite;
+}
+
+/* Quick action buttons hover effects */
+.quick-btn:active {
+    transform: scale(0.95);
+}
+
+/* Status indicators */
+.status-indicator {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: rgba(0, 0, 0, 0.8);
+    color: white;
+    padding: 15px 25px;
+    border-radius: 8px;
+    font-size: 16px;
+    z-index: 3000;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.status-indicator.show {
+    opacity: 1;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+    #settings-panel {
+        width: 100vw;
+        right: -100vw;
+    }
+
+    #transport-controls {
+        bottom: 10px;
+        padding: 10px 15px;
+        flex-wrap: wrap;
+        gap: 8px;
+    }
+
+    .transport-btn {
+        width: 35px;
+        height: 35px;
+        font-size: 14px;
+    }
+
+    #quick-actions {
+        top: 60px;
+        right: 10px;
+    }
+
+    .quick-btn {
+        width: 35px;
+        height: 35px;
+        font-size: 14px;
+    }
+}
+
+/* Piano Roll Canvas Styles */
+body {
+    margin: 0;
+    padding: 0;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background: #1a1a1a;
+    color: #ffffff;
+    overflow: hidden;
+}
+
+#app {
+    width: 100vw;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    background: #1a1a1a;
+}
+
+canvas {
+    display: block;
+    cursor: crosshair;
+    background: #1a1a1a;
+}
+
+/* Control panels */
+.canvas-controls {
+    position: fixed;
+    top: 10px;
+    left: 10px;
+    z-index: 1000;
+    background: rgba(0, 0, 0, 0.9);
+    padding: 15px;
+    border-radius: 8px;
+    color: white;
+    font-family: inherit;
+    font-size: 14px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.canvas-controls h3 {
+    margin: 0 0 10px 0;
+    font-size: 16px;
+    color: #4a9eff;
+}
+
+.canvas-controls button {
+    background: linear-gradient(135deg, #4a9eff, #357abd);
+    border: none;
+    color: white;
+    padding: 8px 16px;
+    margin: 2px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 12px;
+    font-weight: 500;
+    transition: all 0.2s ease;
+}
+
+.canvas-controls button:hover {
+    background: linear-gradient(135deg, #357abd, #2a5f94);
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(74, 158, 255, 0.3);
+}
+
+.canvas-controls button:active {
+    transform: translateY(0);
+}
+
+.canvas-controls input[type="range"] {
+    width: 100%;
+    margin: 5px 0;
+    background: transparent;
+    cursor: pointer;
+}
+
+.canvas-controls input[type="range"]::-webkit-slider-track {
+    background: #333;
+    height: 4px;
+    border-radius: 2px;
+}
+
+.canvas-controls input[type="range"]::-webkit-slider-thumb {
+    appearance: none;
+    background: #4a9eff;
+    height: 16px;
+    width: 16px;
+    border-radius: 50%;
+    cursor: pointer;
+    border: 2px solid #ffffff;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.canvas-controls input[type="range"]::-moz-range-track {
+    background: #333;
+    height: 4px;
+    border-radius: 2px;
+    border: none;
+}
+
+.canvas-controls input[type="range"]::-moz-range-thumb {
+    background: #4a9eff;
+    height: 16px;
+    width: 16px;
+    border-radius: 50%;
+    cursor: pointer;
+    border: 2px solid #ffffff;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.canvas-controls select {
+    width: 100%;
+    padding: 6px 8px;
+    margin: 5px 0;
+    background: #333;
+    color: white;
+    border: 1px solid #555;
+    border-radius: 4px;
+    font-size: 12px;
+}
+
+.canvas-controls select:focus {
+    outline: none;
+    border-color: #4a9eff;
+    box-shadow: 0 0 0 2px rgba(74, 158, 255, 0.2);
+}
+
+.canvas-controls label {
+    display: block;
+    margin: 8px 0 2px 0;
+    font-size: 12px;
+    color: #cccccc;
+    font-weight: 500;
+}
+
+.canvas-controls input[type="checkbox"] {
+    margin-right: 6px;
+    accent-color: #4a9eff;
+}
+
+/* Audio controls panel */
+.audio-controls {
+    position: fixed;
+    top: 10px;
+    right: 10px;
+    z-index: 1001;
+    background: rgba(0, 0, 0, 0.9);
+    padding: 15px;
+    border-radius: 8px;
+    color: white;
+    font-family: inherit;
+    font-size: 14px;
+    min-width: 200px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+
+    .canvas-controls,
+    .audio-controls {
+        position: relative;
+        top: auto;
+        left: auto;
+        right: auto;
+        margin: 5px;
+        flex-shrink: 0;
+    }
+
+    #app {
+        flex-direction: column;
+    }
+
+    .canvas-controls {
+        order: 1;
+    }
+
+    .audio-controls {
+        order: 2;
+    }
+
+    canvas {
+        order: 3;
+        flex: 1;
+    }
+}
+
+@media (max-width: 480px) {
+
+    .canvas-controls,
+    .audio-controls {
+        font-size: 12px;
+        padding: 10px;
+    }
+
+    .canvas-controls button {
+        padding: 6px 12px;
+        font-size: 11px;
+    }
+}
+
+/* Loading screen */
+.loading {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: #1a1a1a;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+}
+
+.loading-spinner {
+    width: 50px;
+    height: 50px;
+    border: 3px solid #333;
+    border-top: 3px solid #4a9eff;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% {
+        transform: rotate(0deg);
+    }
+
+    100% {
+        transform: rotate(360deg);
+    }
+}
+
+/* Help overlay */
+.help-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.8);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 2000;
+    color: white;
+    font-family: inherit;
+}
+
+.help-content {
+    background: rgba(0, 0, 0, 0.9);
+    padding: 30px;
+    border-radius: 10px;
+    max-width: 500px;
+    max-height: 80vh;
+    overflow-y: auto;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.help-content h2 {
+    color: #4a9eff;
+    margin-top: 0;
+}
+
+.help-content h3 {
+    color: #cccccc;
+    margin-top: 20px;
+    margin-bottom: 10px;
+}
+
+.help-content p,
+.help-content li {
+    line-height: 1.5;
+    color: #ffffff;
+}
+
+.help-content ul {
+    padding-left: 20px;
+}
+
+.help-content kbd {
+    background: #333;
+    padding: 2px 6px;
+    border-radius: 3px;
+    font-family: monospace;
+    font-size: 12px;
+}
+
+.close-help {
+    position: absolute;
+    top: 15px;
+    right: 20px;
+    background: none;
+    border: none;
+    color: #ccc;
+    font-size: 24px;
+    cursor: pointer;
+    padding: 0;
+    line-height: 1;
+}
+
+.close-help:hover {
+    color: white;
+}
+
+/* Scrollbars */
+::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: #333;
+}
+
+::-webkit-scrollbar-thumb {
+    background: #555;
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: #666;
+}
