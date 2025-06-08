@@ -355,6 +355,20 @@ class AppTimer {
         };
     }
 
+    getCurrentStep() {
+        // Convert current bar/beat/tick to step number based on 16th note subdivision
+        const stepsPerBeat = 4; // 16th notes = 4 steps per beat
+        const stepsPerBar = stepsPerBeat * this.timeSignature.numerator;
+        const ticksPerBeat = this.ticksPerBeat; // 96 ticks per beat
+        const ticksPerStep = ticksPerBeat / stepsPerBeat; // 24 ticks per step
+        
+        const totalSteps = (this.currentBar - 1) * stepsPerBar + 
+                          (this.currentBeat - 1) * stepsPerBeat + 
+                          Math.floor(this.currentTick / ticksPerStep);
+        
+        return Math.floor(totalSteps);
+    }
+
     getAudioContext() {
         return this.audioContext;
     }

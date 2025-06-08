@@ -9,6 +9,14 @@ class PianoRollConfig {
         this.gridCols = options.gridCols || 32; // Default 2 bars
         this.noteRange = options.noteRange || { start: 'C0', end: 'C8' };
         
+        // Canvas dimensions configuration
+        this.canvasWidth = options.canvasWidth || 'auto'; // 'auto' to use container width, or specific pixel value
+        this.canvasHeight = options.canvasHeight || 'auto'; // 'auto' to use container height, or specific pixel value
+        this.minCanvasWidth = options.minCanvasWidth || 400;
+        this.minCanvasHeight = options.minCanvasHeight || 300;
+        this.maxCanvasWidth = options.maxCanvasWidth || null; // null = no limit
+        this.maxCanvasHeight = options.maxCanvasHeight || null; // null = no limit
+        
         // Visual configuration
         this.cellHeight = options.cellHeight || 20;
         this.cellWidth = options.cellWidth || 'auto'; // 'auto' or number
@@ -138,22 +146,58 @@ class PianoRollConfig {
         this.notifyChange('labelWidth', width);
     }
 
-    enableFeature(feature, enabled) {
-        switch (feature) {
-            case 'beatNumbers':
-                this.showBeatNumbers = enabled;
-                break;
-            case 'pianoKeys':
-                this.showPianoKeys = enabled;
-                break;
-            case 'virtualScrolling':
-                this.enableVirtualScrolling = enabled;
-                break;
-            case 'batchUpdates':
-                this.enableBatchUpdates = enabled;
-                break;
+    // Canvas dimensions configuration
+    setCanvasSize(width, height) {
+        this.setCanvasWidth(width);
+        this.setCanvasHeight(height);
+    }
+
+    setCanvasWidth(width) {
+        if (width === 'auto') {
+            this.canvasWidth = 'auto';
+        } else {
+            const numWidth = typeof width === 'number' ? width : parseInt(width, 10);
+            if (!isNaN(numWidth)) {
+                this.canvasWidth = Math.max(this.minCanvasWidth, numWidth);
+                if (this.maxCanvasWidth !== null) {
+                    this.canvasWidth = Math.min(this.canvasWidth, this.maxCanvasWidth);
+                }
+            }
         }
-        this.notifyChange(feature, enabled);
+        this.notifyChange('canvasWidth', this.canvasWidth);
+    }
+
+    setCanvasHeight(height) {
+        if (height === 'auto') {
+            this.canvasHeight = 'auto';
+        } else {
+            const numHeight = typeof height === 'number' ? height : parseInt(height, 10);
+            if (!isNaN(numHeight)) {
+                this.canvasHeight = Math.max(this.minCanvasHeight, numHeight);
+                if (this.maxCanvasHeight !== null) {
+                    this.canvasHeight = Math.min(this.canvasHeight, this.maxCanvasHeight);
+                }
+            }
+        }
+        this.notifyChange('canvasHeight', this.canvasHeight);
+    }
+
+    setCanvasLimits(minWidth, minHeight, maxWidth = null, maxHeight = null) {
+        this.minCanvasWidth = Math.max(100, minWidth);
+        this.minCanvasHeight = Math.max(100, minHeight);
+        this.maxCanvasWidth = maxWidth;
+        this.maxCanvasHeight = maxHeight;
+        
+        // Re-validate current dimensions
+        this.setCanvasWidth(this.canvasWidth);
+        this.setCanvasHeight(this.canvasHeight);
+        
+        this.notifyChange('canvasLimits', { 
+            minWidth: this.minCanvasWidth, 
+            minHeight: this.minCanvasHeight,
+            maxWidth: this.maxCanvasWidth,
+            maxHeight: this.maxCanvasHeight
+        });
     }
 
     // Theme management

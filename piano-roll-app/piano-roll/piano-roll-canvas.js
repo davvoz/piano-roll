@@ -60,13 +60,20 @@ class PianoRollCanvas {
         this.isDragging = false;
         this.lastMouseX = 0;
         this.lastMouseY = 0;
-        this.needsRedraw = true;
-        // Note resize properties
+        this.needsRedraw = true;        // Note resize properties
         this.isResizingNote = false;
         this.resizingNoteKey = null;
         this.resizingNoteStartX = null;
         this.resizingNoteInitialDuration = null;
-        this.justFinishedResizing = false; // Flag per prevenire click dopo resize// Flag per ottimizzare il rendering
+        this.justFinishedResizing = false; // Flag per prevenire click dopo resize
+
+        // Scrollbar drag properties
+        this.isDraggingScrollbar = false;
+        this.draggingHorizontalScrollbar = false;
+        this.draggingVerticalScrollbar = false;
+        this.scrollbarDragOffset = { x: 0, y: 0 };
+
+        // Flag per ottimizzare il rendering
 
         // Colors and theme
         this.colors = {
@@ -89,6 +96,9 @@ class PianoRollCanvas {
         this.TimingProxy.onPlay = () => this.onTimingPlay();
         this.TimingProxy.onPause = () => this.onTimingPause();
         this.TimingProxy.onStop = () => this.onTimingStop();
+
+        // Setup configuration change callbacks
+        this.config.onChange = (property, value) => this.onConfigChange(property, value);
 
         // Bind event handlers to preserve 'this'
         this.handleMouseDown = this.handleMouseDown.bind(this);
@@ -125,215 +135,35 @@ class PianoRollCanvas {
 
         this.container.appendChild(this.canvas);
         this.resizeCanvas();
-    }
-
-    createControls() {
-        const controls = document.createElement('div');
-        controls.className = 'canvas-controls'; controls.style.cssText = `
-            position: fixed;
-            top: 10px;
-            left: 10px;
-            z-index: 1000;
-            background: rgba(0,0,0,0.9);
-            padding: 10px;
-            border-radius: 8px;
-            color: white;
-            font-family: Arial, sans-serif;
-            font-size: 14px;
-            cursor: move;
-            user-select: none;
-            border: 1px solid rgba(255,255,255,0.2);
-            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
-            backdrop-filter: blur(10px);
-            transition: box-shadow 0.2s ease;
-        `;
-
-        // Add hover effect
-        controls.addEventListener('mouseenter', () => {
-            controls.style.boxShadow = '0 6px 16px rgba(0,0,0,0.4)';
-            controls.style.border = '1px solid rgba(255,255,255,0.3)';
-        });
-
-        controls.addEventListener('mouseleave', () => {
-            controls.style.boxShadow = '0 4px 12px rgba(0,0,0,0.3)';
-            controls.style.border = '1px solid rgba(255,255,255,0.2)';
-        });
-        controls.innerHTML = `
-            <div class="controls-header" style="
-                margin-bottom: 10px; 
-                padding-bottom: 8px; 
-                border-bottom: 1px solid rgba(255,255,255,0.2); 
-                cursor: move;
-                display: flex;
-                justify-content: space-between;
-                align-items: center;
-            ">
-                <span style="font-weight: bold; color: #4a9eff;">♪ Piano Roll</span>
-                <span style="font-size: 11px; opacity: 0.6; font-style: italic;">drag me</span>
-            </div>            <div style="margin-bottom: 10px;">
-                <label style="display: block; margin-bottom: 5px;">Tempo: <span id="tempo-value">${this.config.tempo}</span> BPM</label>
-                <input type="range" id="tempo-slider" min="60" max="200" value="${this.config.tempo}" style="width: 100%; accent-color: #4a9eff;">
-            </div>
-            <div style="margin-bottom: 10px;">
-                <label style="display: block; margin-bottom: 5px;">Lunghezza: <span id="length-value">${this.config.gridCols}</span> steps</label>
-                <input type="range" id="length-slider" min="8" max="128" value="${this.config.gridCols}" style="width: 100%; accent-color: #4a9eff;">
-            </div>            <div style="margin-bottom: 10px;">
-                <label style="cursor: pointer;">
-                    <input type="checkbox" id="loop-checkbox" ${this.config.isLooping ? 'checked' : ''} style="margin-right: 5px; accent-color: #4a9eff;"> Loop
-                </label>
-            </div>
-            <div style="margin-bottom: 10px;">
-                <label style="display: block; margin-bottom: 5px; font-size: 12px; color: #cccccc;">Navigazione:</label>
-                <div style="display: flex; gap: 5px;">
-                    <button id="scroll-start" style="padding: 3px 8px; border: none; border-radius: 3px; background: #555; color: white; cursor: pointer; font-size: 12px;">⏮ Inizio</button>
-                    <button id="scroll-left" style="padding: 3px 8px; border: none; border-radius: 3px; background: #555; color: white; cursor: pointer; font-size: 12px;">◀</button>
-                    <button id="scroll-right" style="padding: 3px 8px; border: none; border-radius: 3px; background: #555; color: white; cursor: pointer; font-size: 12px;">▶</button>
-                    <button id="scroll-end" style="padding: 3px 8px; border: none; border-radius: 3px; background: #555; color: white; cursor: pointer; font-size: 12px;">⏭ Fine</button>
-                </div>
-            </div>
-            <div>
-                <label style="display: block; margin-bottom: 5px; font-size: 12px; color: #cccccc;">Scroll: Shift+Ruota (Orizz.) | Ruota (Vert.)</label>
-            </div>
-        `; document.body.appendChild(controls);
-
-        // Add button hover effects
-        const buttons = controls.querySelectorAll('button');
-        buttons.forEach(button => {
-            button.addEventListener('mouseenter', () => {
-                button.style.transform = 'scale(1.05)';
-                button.style.transition = 'transform 0.1s ease';
-            });
-            button.addEventListener('mouseleave', () => {
-                button.style.transform = 'scale(1)';
-            });
-        });
-        const tempoSlider = document.getElementById('tempo-slider');
-        tempoSlider.addEventListener('input', (e) => {
-            const tempo = parseInt(e.target.value);
-            this.setTempo(tempo);
-            document.getElementById('tempo-value').textContent = tempo;
-        }); const lengthSlider = document.getElementById('length-slider');
-        lengthSlider.addEventListener('input', (e) => {
-            const length = parseInt(e.target.value);
-            this.setGridLength(length);
-            document.getElementById('length-value').textContent = length;
-
-            // Aggiorna il timing engine con la nuova regione di loop
-            this.TimingProxy.setLoopRegion(this.config.loopStart, this.config.loopEnd);
-        });
-        document.getElementById('loop-checkbox').addEventListener('change', (e) => {
-            this.TimingProxy.setLooping(e.target.checked);
-        });
-
-        // Navigation controls
-        document.getElementById('scroll-start').addEventListener('click', () => {
-            this.scrollX = 0;
-            this.needsRedraw = true;
-        });
-
-        document.getElementById('scroll-left').addEventListener('click', () => {
-            this.scrollX = Math.max(0, this.scrollX - this.cellWidth * 4);
-            this.needsRedraw = true;
-        });
-
-        document.getElementById('scroll-right').addEventListener('click', () => {
-            this.scrollX = Math.min(this.maxScrollX, this.scrollX + this.cellWidth * 4);
-            this.needsRedraw = true;
-        });
-
-        document.getElementById('scroll-end').addEventListener('click', () => {
-            this.scrollX = this.maxScrollX;
-            this.needsRedraw = true;
-        });
-
-        // Make controls draggable
-        this.makeDraggable(controls);
-    }
-
-    makeDraggable(element) {
-        let isDragging = false;
-        let currentX;
-        let currentY;
-        let initialX;
-        let initialY;
-        let xOffset = 0;
-        let yOffset = 0;
-
-        // Get initial position from CSS
-        const rect = element.getBoundingClientRect();
-        xOffset = rect.left;
-        yOffset = rect.top;
-
-        const dragStart = (e) => {
-            // Only drag from header or main area, not from controls
-            const target = e.target;
-            if (target.tagName === 'INPUT' || target.tagName === 'BUTTON') {
-                return;
-            }
-
-            if (e.type === "touchstart") {
-                initialX = e.touches[0].clientX - xOffset;
-                initialY = e.touches[0].clientY - yOffset;
-            } else {
-                initialX = e.clientX - xOffset;
-                initialY = e.clientY - yOffset;
-            }
-
-            if (e.target === element || e.target.closest('.controls-header')) {
-                isDragging = true;
-                element.style.cursor = 'grabbing';
-            }
-        };
-
-        const dragEnd = (e) => {
-            initialX = currentX;
-            initialY = currentY;
-            isDragging = false;
-            element.style.cursor = 'move';
-        };
-
-        const drag = (e) => {
-            if (isDragging) {
-                e.preventDefault();
-
-                if (e.type === "touchmove") {
-                    currentX = e.touches[0].clientX - initialX;
-                    currentY = e.touches[0].clientY - initialY;
-                } else {
-                    currentX = e.clientX - initialX;
-                    currentY = e.clientY - initialY;
-                }
-
-                xOffset = currentX;
-                yOffset = currentY;
-
-                // Keep within viewport bounds
-                const maxX = window.innerWidth - element.offsetWidth;
-                const maxY = window.innerHeight - element.offsetHeight;
-
-                currentX = Math.max(0, Math.min(currentX, maxX));
-                currentY = Math.max(0, Math.min(currentY, maxY));
-
-                element.style.left = currentX + "px";
-                element.style.top = currentY + "px";
-            }
-        };
-
-        // Mouse events
-        element.addEventListener("mousedown", dragStart);
-        document.addEventListener("mousemove", drag);
-        document.addEventListener("mouseup", dragEnd);
-
-        // Touch events for mobile
-        element.addEventListener("touchstart", dragStart);
-        document.addEventListener("touchmove", drag);
-        document.addEventListener("touchend", dragEnd);
-    }
-
-    resizeCanvas() {
+    }    resizeCanvas() {
         const rect = this.container.getBoundingClientRect();
-        this.canvasWidth = rect.width;
-        this.canvasHeight = rect.height;
+        
+        // Determine canvas dimensions based on configuration
+        if (this.config.canvasWidth === 'auto') {
+            this.canvasWidth = rect.width;
+        } else {
+            this.canvasWidth = this.config.canvasWidth;
+        }
+        
+        if (this.config.canvasHeight === 'auto') {
+            this.canvasHeight = rect.height;
+        } else {
+            this.canvasHeight = this.config.canvasHeight;
+        }
+
+        // Apply limits if configured
+        if (this.config.minCanvasWidth) {
+            this.canvasWidth = Math.max(this.canvasWidth, this.config.minCanvasWidth);
+        }
+        if (this.config.minCanvasHeight) {
+            this.canvasHeight = Math.max(this.canvasHeight, this.config.minCanvasHeight);
+        }
+        if (this.config.maxCanvasWidth !== null) {
+            this.canvasWidth = Math.min(this.canvasWidth, this.config.maxCanvasWidth);
+        }
+        if (this.config.maxCanvasHeight !== null) {
+            this.canvasHeight = Math.min(this.canvasHeight, this.config.maxCanvasHeight);
+        }
 
         // Set canvas size with device pixel ratio for crisp rendering
         this.canvas.width = this.canvasWidth * this.devicePixelRatio;
@@ -390,12 +220,46 @@ class PianoRollCanvas {
         // --- AGGIUNTA: eventi globali per resize note ---
         document.addEventListener('mousemove', (e) => this.handleGlobalMouseMove(e));
         document.addEventListener('mouseup', (e) => this.handleGlobalMouseUp(e));
-    }
-
-    handleMouseDown(event) {
+    } handleMouseDown(event) {
         const pos = this.getMousePosition(event);
+        const canvasPos = {
+            x: event.clientX - this.canvas.getBoundingClientRect().left,
+            y: event.clientY - this.canvas.getBoundingClientRect().top
+        };
+
         this.lastMouseX = pos.x;
         this.lastMouseY = pos.y;
+
+        // Check if click is on scrollbar
+        const scrollbarType = this.getScrollbarAtPosition(canvasPos.x, canvasPos.y);
+        if (scrollbarType) {
+            this.isDraggingScrollbar = true;
+            this.draggingHorizontalScrollbar = scrollbarType === 'horizontal';
+            this.draggingVerticalScrollbar = scrollbarType === 'vertical';
+            // Calculate offset for smooth dragging
+            if (scrollbarType === 'horizontal') {
+                const scrollbarSize = 14;
+                const margin = 4;
+                const scrollbarX = this.labelWidth;
+                const scrollbarWidth = this.canvasWidth - this.labelWidth - scrollbarSize - margin;
+                const thumbWidth = Math.max(20, (scrollbarWidth * this.canvasWidth) / this.totalWidth);
+                const thumbX = scrollbarX + (this.scrollX / this.maxScrollX) * (scrollbarWidth - thumbWidth);
+                this.scrollbarDragOffset.x = canvasPos.x - thumbX;
+            } else {
+                const scrollbarSize = 14;
+                const margin = 4;
+                const scrollbarY = this.headerHeight;
+                const scrollbarHeight = this.canvasHeight - this.headerHeight - scrollbarSize - margin;
+                const thumbHeight = Math.max(20, (scrollbarHeight * this.canvasHeight) / this.totalHeight);
+                const thumbY = scrollbarY + (this.scrollY / this.maxScrollY) * (scrollbarHeight - thumbHeight);
+                this.scrollbarDragOffset.y = canvasPos.y - thumbY;
+            }
+
+            this.handleScrollbarClick(scrollbarType, canvasPos.x, canvasPos.y);
+            event.preventDefault();
+            return;
+        }
+
         // Check if mouse is on a note resize handle
         const hit = this.getNoteResizeHandleAtPosition(pos.x, pos.y);
         if (hit) {
@@ -408,14 +272,46 @@ class PianoRollCanvas {
             return;
         }
         this.isDragging = true;
-    }
-
-    handleMouseMove(event) {
+    } handleMouseMove(event) {
         const pos = this.getMousePosition(event);
+        const canvasPos = {
+            x: event.clientX - this.canvas.getBoundingClientRect().left,
+            y: event.clientY - this.canvas.getBoundingClientRect().top
+        };        // Handle scrollbar dragging
+        if (this.isDraggingScrollbar) {
+            if (this.draggingHorizontalScrollbar) {
+                const scrollbarSize = 14;
+                const margin = 4;
+                const scrollbarX = this.labelWidth;
+                const scrollbarWidth = this.canvasWidth - this.labelWidth - scrollbarSize - margin;
+                const thumbWidth = Math.max(20, (scrollbarWidth * this.canvasWidth) / this.totalWidth);
 
-        // --- AGGIUNTA: cambia il cursore se sopra handle ---
+                const thumbX = canvasPos.x - this.scrollbarDragOffset.x;
+                const thumbRatio = (thumbX - scrollbarX) / (scrollbarWidth - thumbWidth);
+                this.scrollX = Math.max(0, Math.min(this.maxScrollX, thumbRatio * this.maxScrollX));
+                this.needsRedraw = true;
+            } else if (this.draggingVerticalScrollbar) {
+                const scrollbarSize = 14;
+                const margin = 4;
+                const scrollbarY = this.headerHeight;
+                const scrollbarHeight = this.canvasHeight - this.headerHeight - scrollbarSize - margin;
+                const thumbHeight = Math.max(20, (scrollbarHeight * this.canvasHeight) / this.totalHeight);
+
+                const thumbY = canvasPos.y - this.scrollbarDragOffset.y;
+                const thumbRatio = (thumbY - scrollbarY) / (scrollbarHeight - thumbHeight);
+                this.scrollY = Math.max(0, Math.min(this.maxScrollY, thumbRatio * this.maxScrollY));
+                this.needsRedraw = true;
+            }
+            return;
+        }
+
+        // Check cursor for scrollbars and resize handles
+        const scrollbarType = this.getScrollbarAtPosition(canvasPos.x, canvasPos.y);
         const hit = this.getNoteResizeHandleAtPosition(pos.x, pos.y);
-        if (hit) {
+
+        if (scrollbarType) {
+            this.canvas.style.cursor = 'pointer';
+        } else if (hit) {
             this.canvas.style.cursor = 'ew-resize';
         } else {
             this.canvas.style.cursor = 'crosshair';
@@ -490,6 +386,16 @@ class PianoRollCanvas {
             }, 100);
             return;
         }
+
+        // Reset scrollbar dragging
+        if (this.isDraggingScrollbar) {
+            this.isDraggingScrollbar = false;
+            this.draggingHorizontalScrollbar = false;
+            this.draggingVerticalScrollbar = false;
+            this.scrollbarDragOffset = { x: 0, y: 0 };
+            return;
+        }
+
         this.isDragging = false;
     }
 
@@ -511,7 +417,8 @@ class PianoRollCanvas {
             return { row, col };
         }
         return null;
-    } getNoteResizeHandleAtPosition(x, y) {
+    }
+    getNoteResizeHandleAtPosition(x, y) {
         // Returns {noteKey, note} if mouse is on a handle, else null
         // Note: x, y are in world coordinates (with scroll added by getMousePosition)
         for (const [noteKey, note] of this.notes.entries()) {
@@ -531,7 +438,8 @@ class PianoRollCanvas {
             }
         }
         return null;
-    } handleClick(event) {
+    }
+    handleClick(event) {
         // Se sto ridimensionando o ho appena finito di ridimensionare, ignora il click
         if (this.isResizingNote || this.justFinishedResizing) {
             event.preventDefault();
@@ -539,6 +447,17 @@ class PianoRollCanvas {
         }
 
         const pos = this.getMousePosition(event);
+        const canvasPos = {
+            x: event.clientX - this.canvas.getBoundingClientRect().left,
+            y: event.clientY - this.canvas.getBoundingClientRect().top
+        };
+
+        // IMPORTANTE: Verifica se il click è su una scrollbar - se sì, ignora
+        const scrollbarType = this.getScrollbarAtPosition(canvasPos.x, canvasPos.y);
+        if (scrollbarType) {
+            event.preventDefault();
+            return;
+        }
 
         // Controlla anche se il click è su un resize handle
         const handleHit = this.getNoteResizeHandleAtPosition(pos.x, pos.y);
@@ -565,13 +484,15 @@ class PianoRollCanvas {
         if (event.ctrlKey || event.metaKey) {
             // Zoom (future feature)
             return;
-        }
+        }        // Scroll standard: normale per verticale, Shift per orizzontale
+        const scrollAmount = event.deltaY;
 
-        // Scroll
         if (event.shiftKey) {
-            this.scrollX = Math.max(0, Math.min(this.maxScrollX, this.scrollX + event.deltaY));
+            // Shift + rotella = scroll orizzontale
+            this.scrollX = Math.max(0, Math.min(this.maxScrollX, this.scrollX + scrollAmount));
         } else {
-            this.scrollY = Math.max(0, Math.min(this.maxScrollY, this.scrollY + event.deltaY));
+            // Rotella normale = scroll verticale
+            this.scrollY = Math.max(0, Math.min(this.maxScrollY, this.scrollY + scrollAmount));
         }
 
         this.needsRedraw = true;
@@ -683,7 +604,7 @@ class PianoRollCanvas {
             // Scroll a destra
             this.scrollX = Math.min(this.maxScrollX, stepX - this.canvasWidth + margin);
         }
-    }    onTimingPlay() {
+    } onTimingPlay() {
         this.isPlaying = true;
         this.needsRedraw = true;
         // Aggiorna i controlli se esistono
@@ -708,6 +629,32 @@ class PianoRollCanvas {
         const playBtn = document.getElementById('play-btn');
         if (playBtn) playBtn.textContent = 'Play';
         this.dispatchEvent('pianoroll:stopAllNotes');
+    }
+
+    // Configurazione cambiamenti
+    onConfigChange(property, value) {
+        switch (property) {
+            case 'canvasWidth':
+            case 'canvasHeight':
+            case 'canvasLimits':
+                // Force canvas resize when dimensions change
+                this.resizeCanvas();
+                break;
+            case 'cellHeight':
+                this.cellHeight = this.config.cellHeight;
+                this.totalHeight = this.headerHeight + (this.gridRows * this.cellHeight);
+                this.maxScrollY = Math.max(0, this.totalHeight - this.canvasHeight);
+                this.scrollY = Math.min(this.scrollY, this.maxScrollY);
+                this.needsRedraw = true;
+                break;
+            case 'labelWidth':
+                this.labelWidth = this.config.labelWidth;
+                this.totalWidth = this.labelWidth + (this.gridCols * this.cellWidth);
+                this.maxScrollX = Math.max(0, this.totalWidth - this.canvasWidth);
+                this.scrollX = Math.min(this.scrollX, this.maxScrollX);
+                this.needsRedraw = true;
+                break;
+        }
     }
 
     // Transport controls
@@ -779,6 +726,57 @@ class PianoRollCanvas {
         this.needsRedraw = true;
 
         return newCols;
+    }
+
+    // Canvas dimension control methods
+    setCanvasSize(width, height) {
+        this.config.setCanvasSize(width, height);
+        this.resizeCanvas();
+    }
+
+    setCanvasWidth(width) {
+        this.config.setCanvasWidth(width);
+        this.resizeCanvas();
+    }
+
+    setCanvasHeight(height) {
+        this.config.setCanvasHeight(height);
+        this.resizeCanvas();
+    }
+
+    getCanvasSize() {
+        return {
+            width: this.canvasWidth,
+            height: this.canvasHeight,
+            configuredWidth: this.config.canvasWidth,
+            configuredHeight: this.config.canvasHeight
+        };
+    }
+
+    // Configuration change handler
+    onConfigChange(property, value) {
+        switch (property) {
+            case 'canvasWidth':
+            case 'canvasHeight':
+            case 'canvasLimits':
+                // Force canvas resize when dimensions change
+                this.resizeCanvas();
+                break;
+            case 'cellHeight':
+                this.cellHeight = this.config.cellHeight;
+                this.totalHeight = this.headerHeight + (this.gridRows * this.cellHeight);
+                this.maxScrollY = Math.max(0, this.totalHeight - this.canvasHeight);
+                this.scrollY = Math.min(this.scrollY, this.maxScrollY);
+                this.needsRedraw = true;
+                break;
+            case 'labelWidth':
+                this.labelWidth = this.config.labelWidth;
+                this.totalWidth = this.labelWidth + (this.gridCols * this.cellWidth);
+                this.maxScrollX = Math.max(0, this.totalWidth - this.canvasWidth);
+                this.scrollX = Math.min(this.scrollX, this.maxScrollX);
+                this.needsRedraw = true;
+                break;
+        }
     }
 
     clearAll() {
@@ -980,48 +978,118 @@ class PianoRollCanvas {
             this.ctx.lineWidth = 2;
             this.ctx.strokeRect(x + 1, y + 1, this.cellWidth - 2, this.cellHeight - 2);
         }
-    }
+    } drawScrollbars() {
+        const scrollbarSize = 14;  // Aumentato per renderle più facili da usare
+        const margin = 4;  // Margine dal bordo
+        const trackColor = 'rgba(40, 40, 40, 0.9)';  // Più scuro per contrasto
+        const thumbColor = this.isDraggingScrollbar ? 'rgba(74, 158, 255, 0.9)' : 'rgba(180, 180, 180, 0.8)';
+        const thumbHoverColor = 'rgba(200, 200, 200, 0.9)';
 
-    drawScrollbars() {
-        const scrollbarSize = 12;
-        const scrollbarColor = 'rgba(255, 255, 255, 0.3)';
-        const thumbColor = 'rgba(255, 255, 255, 0.6)';
-
-        // Horizontal scrollbar
+        // Horizontal scrollbar (spostata più in alto)
         if (this.maxScrollX > 0) {
-            const scrollbarY = this.canvasHeight - scrollbarSize;
-            const scrollbarWidth = this.canvasWidth - this.labelWidth;
+            const scrollbarY = this.canvasHeight - scrollbarSize - margin;
+            const scrollbarWidth = this.canvasWidth - this.labelWidth - scrollbarSize - margin;
             const scrollbarX = this.labelWidth;
 
-            // Track
-            this.ctx.fillStyle = scrollbarColor;
+            // Track with better contrast and rounded corners
+            this.ctx.fillStyle = trackColor;
             this.ctx.fillRect(scrollbarX, scrollbarY, scrollbarWidth, scrollbarSize);
 
-            // Thumb
+            // Add subtle border
+            this.ctx.strokeStyle = 'rgba(60, 60, 60, 0.8)';
+            this.ctx.lineWidth = 1;
+            this.ctx.strokeRect(scrollbarX, scrollbarY, scrollbarWidth, scrollbarSize);
+
+            // Thumb with better visibility
             const thumbWidth = Math.max(20, (scrollbarWidth * this.canvasWidth) / this.totalWidth);
             const thumbX = scrollbarX + (this.scrollX / this.maxScrollX) * (scrollbarWidth - thumbWidth);
 
-            this.ctx.fillStyle = thumbColor;
-            this.ctx.fillRect(thumbX, scrollbarY, thumbWidth, scrollbarSize);
+            this.ctx.fillStyle = this.draggingHorizontalScrollbar ? thumbColor : thumbHoverColor;
+            this.ctx.fillRect(thumbX + 2, scrollbarY + 2, thumbWidth - 4, scrollbarSize - 4);
+
+            // Add highlight to thumb
+            this.ctx.strokeStyle = 'rgba(255, 255, 255, 0.4)';
+            this.ctx.lineWidth = 1;
+            this.ctx.strokeRect(thumbX + 2, scrollbarY + 2, thumbWidth - 4, scrollbarSize - 4);
         }
 
-        // Vertical scrollbar
+        // Vertical scrollbar (spostata più a sinistra)
         if (this.maxScrollY > 0) {
-            const scrollbarX = this.canvasWidth - scrollbarSize;
-            const scrollbarHeight = this.canvasHeight - this.headerHeight;
+            const scrollbarX = this.canvasWidth - scrollbarSize - margin;
+            const scrollbarHeight = this.canvasHeight - this.headerHeight - scrollbarSize - margin;
             const scrollbarY = this.headerHeight;
 
-            // Track
-            this.ctx.fillStyle = scrollbarColor;
+            // Track with better contrast and rounded corners
+            this.ctx.fillStyle = trackColor;
             this.ctx.fillRect(scrollbarX, scrollbarY, scrollbarSize, scrollbarHeight);
 
-            // Thumb
+            // Add subtle border
+            this.ctx.strokeStyle = 'rgba(60, 60, 60, 0.8)';
+            this.ctx.lineWidth = 1;
+            this.ctx.strokeRect(scrollbarX, scrollbarY, scrollbarSize, scrollbarHeight);
+
+            // Thumb with better visibility
             const thumbHeight = Math.max(20, (scrollbarHeight * this.canvasHeight) / this.totalHeight);
             const thumbY = scrollbarY + (this.scrollY / this.maxScrollY) * (scrollbarHeight - thumbHeight);
 
-            this.ctx.fillStyle = thumbColor;
-            this.ctx.fillRect(scrollbarX, thumbY, scrollbarSize, thumbHeight);
+            this.ctx.fillStyle = this.draggingVerticalScrollbar ? thumbColor : thumbHoverColor;
+            this.ctx.fillRect(scrollbarX + 2, thumbY + 2, scrollbarSize - 4, thumbHeight - 4);
+            // Add highlight to thumb
+            this.ctx.strokeStyle = 'rgba(255, 255, 255, 0.4)';
+            this.ctx.lineWidth = 1;
+            this.ctx.strokeRect(scrollbarX + 2, thumbY + 2, scrollbarSize - 4, thumbHeight - 4);
         }
+    }
+
+    // Helper methods for scrollbar interaction
+    getScrollbarAtPosition(x, y) {
+        const scrollbarSize = 14;  // Aumentato per renderle più facili da usare
+        const margin = 4;  // Margine dal bordo
+
+        // Check horizontal scrollbar (spostata più in alto)
+        if (this.maxScrollX > 0) {
+            const scrollbarY = this.canvasHeight - scrollbarSize - margin;
+            const scrollbarWidth = this.canvasWidth - this.labelWidth - scrollbarSize - margin;
+            const scrollbarX = this.labelWidth;
+
+            if (x >= scrollbarX && x <= scrollbarX + scrollbarWidth &&
+                y >= scrollbarY && y <= scrollbarY + scrollbarSize) {
+                return 'horizontal';
+            }
+        }
+
+        // Check vertical scrollbar (spostata più a sinistra)
+        if (this.maxScrollY > 0) {
+            const scrollbarX = this.canvasWidth - scrollbarSize - margin;
+            const scrollbarHeight = this.canvasHeight - this.headerHeight - scrollbarSize - margin;
+            const scrollbarY = this.headerHeight;
+
+            if (x >= scrollbarX && x <= scrollbarX + scrollbarSize &&
+                y >= scrollbarY && y <= scrollbarY + scrollbarHeight) {
+                return 'vertical';
+            }
+        }
+
+        return null;
+    }
+
+    handleScrollbarClick(scrollbarType, x, y) {
+        const scrollbarSize = 14;
+        const margin = 4;
+
+        if (scrollbarType === 'horizontal') {
+            const scrollbarWidth = this.canvasWidth - this.labelWidth - scrollbarSize - margin;
+            const scrollbarX = this.labelWidth;
+            const clickRatio = (x - scrollbarX) / scrollbarWidth;
+            this.scrollX = Math.max(0, Math.min(this.maxScrollX, clickRatio * this.maxScrollX));
+        } else if (scrollbarType === 'vertical') {
+            const scrollbarHeight = this.canvasHeight - this.headerHeight - scrollbarSize - margin;
+            const scrollbarY = this.headerHeight;
+            const clickRatio = (y - scrollbarY) / scrollbarHeight;
+            this.scrollY = Math.max(0, Math.min(this.maxScrollY, clickRatio * this.maxScrollY));
+        }
+
+        this.needsRedraw = true;
     }
 
     // Event system

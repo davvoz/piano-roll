@@ -38,8 +38,8 @@ class App {
             labelWidth: 60,
             totalBars: 8,
             subdivision: 16,
-            showControls: false,
-            showDimensionControls: false, // Nascosti ma funzionali
+            showControls: true, // Mostra la testata con i controlli
+            showDimensionControls: true, // Mostra controlli dimensioni
             showLengthControls: true,
             showAudioControls: true, // Mostra controlli audio nella testata
             autoResize: true,
@@ -65,6 +65,19 @@ class App {
         // Eventi dal piano roll wrapper
         document.addEventListener('pianorollwrapper:dimensionsChanged', (event) => {
             console.log('Piano roll dimensions changed:', event.detail);
+            
+            // Reconnect to new piano roll instance if provided
+            if (event.detail.pianoRoll) {
+                this.pianoRoll = event.detail.pianoRoll;
+                
+                // Reconnect piano roll to timer
+                if (this.pianoRoll.TimingProxy && this.appTimer) {
+                    this.pianoRoll.TimingProxy.connectToTimer(this.appTimer);
+                }
+                
+                // Re-setup timer event handlers for the new instance
+                this.setupTimerEvents();
+            }
         });
 
         document.addEventListener('pianorollwrapper:tempoChanged', (event) => {
