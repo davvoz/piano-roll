@@ -1,10 +1,11 @@
-import PianoRollCanvas from './src/piano-roll-canvas.js';
-import AudioEngine from './src/audio-engine.js';
-import AppTimer from './src/app-timer.js';
+import PianoRollWrapper from './piano-roll-wrapper.js';
+import AudioEngine from './audio-engine.js';
+import AppTimer from './app-timer.js';
 
 class App {
     constructor() {
         this.appTimer = null;
+        this.pianoRollWrapper = null;
         this.pianoRoll = null;
         this.audioEngine = null;
         this.init();
@@ -26,15 +27,27 @@ class App {
             audioContext: this.appTimer.getAudioContext()
         });
         
-        // Initialize piano roll canvas
+        // Initialize piano roll wrapper
         const container = document.getElementById('app');
-        this.pianoRoll = new PianoRollCanvas(container, {
+        this.pianoRollWrapper = new PianoRollWrapper(container, {
             gridRows: 49, // 4 octaves (C3-C7)
             gridCols: 32,
             tempo: 120,
             cellHeight: 24,
-            labelWidth: 60
+            cellWidth: 40,
+            labelWidth: 60,
+            totalBars: 8,
+            subdivision: 16,
+            showControls: false,
+            showDimensionControls: false, // Nascosti ma funzionali
+            showLengthControls: true,
+            showAudioControls: true, // Mostra controlli audio nella testata
+            autoResize: true,
+            masterVolume: 20
         });
+
+        // Get piano roll instance from wrapper
+        this.pianoRoll = this.pianoRollWrapper.getPianoRoll();
 
         // Connect piano roll to timer
         if (this.pianoRoll.TimingProxy) {
@@ -46,10 +59,33 @@ class App {
         
         // Setup event listeners
         this.setupEventListeners();
-        this.createAudioControls();
     }
 
     setupEventListeners() {
+        // Eventi dal piano roll wrapper
+        document.addEventListener('pianorollwrapper:dimensionsChanged', (event) => {
+            console.log('Piano roll dimensions changed:', event.detail);
+        });
+
+        document.addEventListener('pianorollwrapper:tempoChanged', (event) => {
+            const { tempo } = event.detail;
+            // Sincronizza il tempo con l'app timer
+            if (this.appTimer) {
+                this.appTimer.setTempo(tempo);
+            }
+        });
+
+        document.addEventListener('pianorollwrapper:audioVolumeChanged', (event) => {
+            const { volume } = event.detail;
+            // Aggiorna il volume dell'audio engine
+            this.audioEngine.setMasterVolume(volume / 100);
+        });
+
+        document.addEventListener('pianorollwrapper:stopAllNotes', (event) => {
+            // Stop all audio
+            this.audioEngine.stopAll();
+        });
+
         // Eventi dal piano roll
         document.addEventListener('pianoroll:playNotes', (event) => {
             const { notes } = event.detail;
@@ -86,53 +122,6 @@ class App {
                 await this.appTimer.audioContext.resume();
             }
         }, { once: true });
-    }
-
-    createAudioControls() {
-        const audioControls = document.createElement('div');
-        audioControls.style.cssText = `
-            position: fixed;
-            top: 10px;
-            right: 10px;
-            z-index: 1001;
-            background: rgba(0,0,0,0.8);
-            padding: 15px;
-            border-radius: 5px;
-            color: white;
-            font-family: Arial, sans-serif;
-            font-size: 14px;
-            min-width: 200px;
-        `;
-        
-        audioControls.innerHTML = `
-            <h3 style="margin: 0 0 10px 0;">Audio Settings</h3>
-            <div style="margin-bottom: 10px;">
-                <label>Master Volume: <span id="volume-value">20</span>%</label>
-                <input type="range" id="volume-slider" min="0" max="100" value="20" style="width: 100%;">
-            </div>
-            <div style="margin-bottom: 10px;">
-                <button id="stop-all" style="width: 100%; padding: 8px; background: #ff4444; color: white; border: none; border-radius: 3px; cursor: pointer;">
-                    Stop All Notes
-                </button>
-            </div>
-            <div style="font-size: 12px; color: #aaa; margin-top: 10px;">
-                <p>Simplified Audio Engine</p>
-                <p>Basic sine wave synthesis</p>
-            </div>
-        `;
-        
-        document.body.appendChild(audioControls);
-        
-        // Event listeners for audio controls
-        document.getElementById('volume-slider').addEventListener('input', (e) => {
-            const volume = parseInt(e.target.value) / 100;
-            this.audioEngine.setMasterVolume(volume);
-            document.getElementById('volume-value').textContent = e.target.value;
-        });
-        
-        document.getElementById('stop-all').addEventListener('click', () => {
-            this.audioEngine.stopAll();
-        });
     }
 
     handleKeyboardInput(event) {
